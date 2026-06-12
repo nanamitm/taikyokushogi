@@ -59,6 +59,21 @@ The game is automatically drawn if **500 consecutive full moves** (1,000 plies) 
 
 Each side's 402 pieces occupy 12 ranks. Black occupies the bottom of the board (rows 25-36); White mirrors from the top (rows 1-12). The King sits at the center of the back rank, flanked by the Crown Prince.
 
+## Download (Prebuilt Binaries)
+
+Prebuilt, self-contained binaries are attached to each [GitHub Release](https://github.com/jh85/taikyokushogi/releases) — **no Python or Rust install required**.
+
+| Platform | File | How to run |
+|----------|------|------------|
+| Windows | `taikyokushogi.exe` | Double-click, then open the printed URL |
+| Linux (x86_64) | `Taikyoku_Shogi-x86_64.AppImage` | `chmod +x Taikyoku_Shogi-x86_64.AppImage && ./Taikyoku_Shogi-x86_64.AppImage` |
+
+The Web GUI starts on **http://localhost:3939** by default. To use a different port, pass it as an argument (`taikyokushogi.exe 5000`) or set the `PORT` environment variable.
+
+> **Linux note:** the AppImage needs FUSE (`libfuse2`) to run. On distros without it, launch with `./Taikyoku_Shogi-x86_64.AppImage --appimage-extract-and-run` instead.
+
+The binaries are built automatically by GitHub Actions ([Windows](.github/workflows/build-windows.yml), [Linux](.github/workflows/build-linux.yml)) whenever a `v*` tag is pushed.
+
 ## Getting Started
 
 ### Requirements
@@ -83,8 +98,8 @@ pip install maturin
 maturin develop --release
 
 # Run the web GUI
-python3 web_gui.py 8080
-# Then open http://localhost:8080 in your browser
+python3 web_gui.py
+# Then open http://localhost:3939 in your browser
 ```
 
 ### Web GUI Features
@@ -114,7 +129,7 @@ python3 -m taikyoku_engine random 200
 If you cannot install Rust, the engine falls back to pure Python automatically. Everything works, just slower (~80x slower for search).
 
 ```bash
-python3 web_gui.py 8080
+python3 web_gui.py
 ```
 
 ## Project Structure
