@@ -22,11 +22,12 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install build tools
-        run: pip install "maturin>=1.0,<2.0" pyinstaller
+        run: pip install pyinstaller
 
-      # Rustエンジンを現在のPython環境にビルド＆インストール (taikyokushogi.pyd 生成)
-      - name: Build Rust backend (maturin)
-        run: maturin develop --release
+      # Rustエンジンをビルドし現在のPython環境へインストール (taikyokushogi.pyd 生成)
+      # pyproject.toml の maturin build-backend が使われる。venv不要・既定でreleaseビルド。
+      - name: Build & install Rust backend
+        run: pip install .
 
       # web_gui.py を単一exe化。Rust拡張のみ同梱し、純Pythonフォールバックは除外
       - name: Build single EXE
