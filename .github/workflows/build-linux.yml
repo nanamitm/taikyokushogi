@@ -1,0 +1,66 @@
+name: Build Linux AppImage
+
+on:
+  push:
+    tags: ["v*"]        # vX.Y.Z タグのpushでビルド
+  workflow_dispatch: {} # Actionsタブから手動実行も可能
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04   # 古めのglibcで広い互換性を確保
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install build tools
+        run: pip install pyinstaller
+
+      # Rustエンジンをビルドし現在のPython環境へインストール (taikyokushogi.so 生成)
+      - name: Build & install Rust backend
+        run: pip install .
+
+      # web_gui.py を onedir でバイナリ化。Rust拡張のみ同梱、フォールバックは除外
+      - name: Build binary (PyInstaller)
+        run: >
+          pyinstaller --onedir --name taikyokushogi
+          --collect-all taikyokushogi
+          --exclude-module taikyoku_engine
+          web_gui.py
+
+      - name: Assemble AppDir
+        run: |
+          mkdir -p AppDir/usr/bin
+          cp -r dist/taikyokushogi/* AppDir/usr/bin/
+          printf '[Desktop Entry]\nType=Application\nName=Taikyoku Shogi\nExec=taikyokushogi\nIcon=taikyokushogi\nCategories=Game;\nTerminal=true\n' > AppDir/taikyokushogi.desktop
+          python -c "import struct,zlib;w=h=256;col=bytes((200,160,48));raw=b''.join(b'\x00'+col*w for _ in range(h));ch=lambda t,d:struct.pack('>I',len(d))+t+d+struct.pack('>I',zlib.crc32(t+d)&0xffffffff);png=b'\x89PNG\r\n\x1a\n'+ch(b'IHDR',struct.pack('>IIBBBBB',w,h,8,2,0,0,0))+ch(b'IDAT',zlib.compress(raw,9))+ch(b'IEND',b'');open('AppDir/taikyokushogi.png','wb').write(png)"
+          cp AppDir/taikyokushogi.png AppDir/.DirIcon
+          printf '#!/bin/sh\nHERE="$(dirname "$(readlink -f "$0")")"\nexec "$HERE/usr/bin/taikyokushogi" "$@"\n' > AppDir/AppRun
+          chmod +x AppDir/AppRun
+
+      - name: Build AppImage
+        run: |
+          wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+          APPIMAGE_EXTRACT_AND_RUN=1 ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir Taikyoku_Shogi-x86_64.AppImage
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: taikyokushogi-linux-appimage
+          path: Taikyoku_Shogi-x86_64.AppImage
+
+      # タグpush時のみ Release に添付
+      - name: Attach to Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: Taikyoku_Shogi-x86_64.AppImage
