@@ -1250,7 +1250,7 @@ fetchState();
 # Main
 # ============================================================
 def main():
-    port = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
+    port = int(sys.argv[1]) if len(sys.argv) > 1 else int(os.environ.get("PORT", 3939))
     server = HTTPServer(('0.0.0.0', port), GameHandler)
     server.daemon_threads = True
     print(f"Taikyoku Shogi Web GUI")

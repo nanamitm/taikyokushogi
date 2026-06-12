@@ -1,0 +1,50 @@
+name: Build Windows EXE
+
+on:
+  push:
+    tags: ["v*"]        # vX.Y.Z タグのpushでビルド
+  workflow_dispatch: {} # Actionsタブから手動実行も可能
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install build tools
+        run: pip install "maturin>=1.0,<2.0" pyinstaller
+
+      # Rustエンジンを現在のPython環境にビルド＆インストール (taikyokushogi.pyd 生成)
+      - name: Build Rust backend (maturin)
+        run: maturin develop --release
+
+      # web_gui.py を単一exe化。Rust拡張のみ同梱し、純Pythonフォールバックは除外
+      - name: Build single EXE
+        run: >
+          pyinstaller --onefile --name taikyokushogi
+          --collect-all taikyokushogi
+          --exclude-module taikyoku_engine
+          web_gui.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: taikyokushogi-windows
+          path: dist/taikyokushogi.exe
+
+      # タグpush時のみ Release に添付
+      - name: Attach to Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/taikyokushogi.exe
