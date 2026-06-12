@@ -5,6 +5,9 @@ on:
     tags: ["v*"]        # vX.Y.Z タグのpushでビルド
   workflow_dispatch: {} # Actionsタブから手動実行も可能
 
+permissions:
+  contents: write   # Releaseの作成・アセット添付に必要
+
 jobs:
   build:
     runs-on: ubuntu-22.04   # 古めのglibcで広い互換性を確保
