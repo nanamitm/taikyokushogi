@@ -49,6 +49,9 @@ mod tsfen;
 #[cfg(feature = "python")]
 mod python;
 
+#[cfg(feature = "wasm")]
+mod wasm;
+
 // ============================================================
 // Public re-exports — the user-facing API
 // ============================================================

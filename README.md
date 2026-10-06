@@ -59,6 +59,21 @@ The game is automatically drawn if **500 consecutive full moves** (1,000 plies) 
 
 Each side's 402 pieces occupy 12 ranks. Black occupies the bottom of the board (rows 25-36); White mirrors from the top (rows 1-12). The King sits at the center of the back rank, flanked by the Crown Prince.
 
+## Play in the Browser (HTML5)
+
+An HTML5 version runs entirely in your browser — nothing to install:
+
+**https://nanamitm.github.io/taikyokushogi/**
+
+The Rust engine is compiled to WebAssembly and runs in a Web Worker, so the page stays responsive while the AI is thinking. It is deployed to GitHub Pages by the [Pages workflow](.github/workflows/pages.yml) on every push to `main`. AI search is somewhat slower than the native build, so it may reach a shallower depth within the same time limit.
+
+To build it locally (requires [wasm-pack](https://github.com/drager/wasm-pack) and `rustup target add wasm32-unknown-unknown`):
+
+```bash
+python web/build.py            # outputs to site/
+python -m http.server -d site  # then open http://localhost:8000
+```
+
 ## Download (Prebuilt Binaries)
 
 Prebuilt, self-contained binaries are attached to each [GitHub Release](https://github.com/jh85/taikyokushogi/releases) — **no Python or Rust install required**.
@@ -139,6 +154,7 @@ taikyokushogi/
   src/                    # Rust engine (PyO3)
     lib.rs                #   Public API + Python bindings
     python.rs             #   PyO3 bindings (behind feature flag)
+    wasm.rs               #   WebAssembly bindings (`wasm` feature)
     types.rs              #   Core types, ray tables
     pieces.rs             #   301 piece types, Betza parser
     board.rs              #   Board representation
@@ -153,6 +169,10 @@ taikyokushogi/
     search.py             #   Search
     usi.py                #   USI protocol
   web_gui.py              # Browser-based game GUI
+  web/                    # HTML5 (WebAssembly) build of the GUI
+    build.py              #   Builds the static site into site/
+    engine-worker.js      #   Web Worker port of web_gui.py's API
+    api-shim.js           #   Routes the GUI's /api calls to the worker
   PIECES.md               # Complete piece movement reference
   Cargo.toml              # Rust project config
   pyproject.toml          # Python/maturin build config

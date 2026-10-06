@@ -11,6 +11,7 @@ categories = ["games", "game-engines"]
 exclude = [
     "taikyoku_engine/",
     "web_gui.py",
+    "web/",
     "pyproject.toml",
     "PIECES.md",
     ".venv/",
@@ -24,10 +25,18 @@ crate-type = ["lib", "cdylib"]
 [features]
 default = []
 python = ["dep:pyo3"]
+wasm = ["dep:wasm-bindgen", "dep:serde_json"]
 
 [dependencies]
 pyo3 = { version = "0.24", features = ["extension-module"], optional = true }
 rand = "0.8"
+wasm-bindgen = { version = "0.2", optional = true }
+serde_json = { version = "1", optional = true }
+
+# wasm32ではstd::time::Instantが使えず、getrandomもJSバックエンドが必要
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.2", features = ["js"] }
+web-time = "1"
 
 [[example]]
 name = "play"

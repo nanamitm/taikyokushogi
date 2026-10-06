@@ -1,0 +1,58 @@
+name: Deploy HTML5 version to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {} # Actionsタブから手動実行も可能
+
+permissions:
+  contents: read
+  pages: write      # Pagesへのデプロイに必要
+  id-token: write   # deploy-pagesのOIDC認証に必要
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install wasm-pack
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack
+
+      # Rustエンジンをwasm化し、web_gui.pyのHTMLと合わせて静的サイトを生成
+      - name: Build static site
+        run: python web/build.py site
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

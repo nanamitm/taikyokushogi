@@ -1184,8 +1184,14 @@ async function undoMove() {
     await fetchState();
 }
 
-function downloadRecord() {
-    window.location.href = '/api/record';
+async function downloadRecord() {
+    const res = await fetch('/api/record');
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'taikyoku_game.tsv';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 function toggleAuto() {
