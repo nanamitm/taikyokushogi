@@ -67,7 +67,7 @@ An HTML5 version runs entirely in your browser — nothing to install:
 
 The Rust engine is compiled to WebAssembly and runs in a Web Worker, so the page stays responsive while the AI is thinking. It is deployed to GitHub Pages by the [Pages workflow](.github/workflows/pages.yml) on every push to `main`. AI search is somewhat slower than the native build, so it may reach a shallower depth within the same time limit.
 
-To build it locally (requires [wasm-pack](https://github.com/drager/wasm-pack) and `rustup target add wasm32-unknown-unknown`):
+To build it locally (requires [wasm-pack](https://github.com/wasm-bindgen/wasm-pack) and `rustup target add wasm32-unknown-unknown`):
 
 ```bash
 python web/build.py            # outputs to site/
